@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage
+    x:Class="LocalGuideAI.Views.PromptPage"
+    xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+    xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+    xmlns:views="clr-namespace:LocalGuideAI.Views"
+    xmlns:vm="clr-namespace:LocalGuideAI.ViewModels"
+    x:DataType="vm:PromptPageViewModel">
+    <!--<ContentPage.BindingContext>
+        <vm:PromptPageViewModel />
+    </ContentPage.BindingContext>-->
+
+    <ScrollView>
+
+        <VerticalStackLayout Margin="0,15,0,0" Spacing="15">
+
+            <FlexLayout HorizontalOptions="Center" Wrap="Wrap">
+
+                <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
+                    <Label Text="Location: " VerticalOptions="Center" />
+                    <Entry
+                        x:Name="LocationEntry"
+                        Placeholder="Enter your location"
+                        SemanticProperties.Hint="Enter the location for recommendations"
+                        Text="{Binding LocationEntryText}" />
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
+                    <Label Text="Days: " VerticalOptions="Center" />
+                    <Entry
+                        x:Name="DaysEntry"
+                        Keyboard="Numeric"
+                        Placeholder="Enter the number of days"
+                        SemanticProperties.Hint="Enter the number of days for recommendations"
+                        Text="{Binding DaysEntryText}" />
+                </HorizontalStackLayout>
+
+                <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
+                    <Label Text="API Key: " VerticalOptions="Center" />
+                    <Entry
+                        x:Name="ApiKeyEntry"
+                        Placeholder="Enter your Chat GPT API key here"
+                        SemanticProperties.Hint="Enter your Chat GPT API key here"
+                        Text="{Binding ApiKey, Mode=OneWayToSource}" />
+                </HorizontalStackLayout>
+
+            </FlexLayout>
+
+            <Label
+                x:Name="PromptLabel"
+                FontSize="18"
+                HorizontalOptions="Center"
+                SemanticProperties.HeadingLevel="Level3"
+                Text="{Binding Prompt, Mode=OneWay}" />
+
+            <Button
+                x:Name="RecommendationButton"
+                Command="{Binding GetRecommendationCommand}"
+                HorizontalOptions="Center"
+                SemanticProperties.Hint="Gets travel recommendations when you click"
+                Text="Get travel recommendations" />
+
+            <Label
+                x:Name="GeneratorLabel"
+                HorizontalOptions="Center"
+                SemanticProperties.HeadingLevel="Level2"
+                Text="" />
+
+            <Label
+                x:Name="RecommendationLabel"
+                FontSize="18"
+                HorizontalOptions="Center"
+                SemanticProperties.HeadingLevel="Level2"
+                Text="{Binding RecommendationLabelText}" />
+
+        </VerticalStackLayout>
+
+    </ScrollView>
+
+</ContentPage>
