@@ -1,4 +1,5 @@
-﻿using ChatGptNet;
+﻿using Azure.AI.OpenAI;
+using Azure;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using LocalGuideAI.Abstractions;
@@ -53,17 +54,11 @@ namespace LocalGuideAI
             return provider;
         }
 
-        static IConfiguration AddChatGptConfiguration(this IServiceCollection services, string sectionName = "ChatGPT")
+        static IConfiguration AddChatGptConfiguration(this IServiceCollection services, string sectionName = "Azure")
         {
             var configuration = BuildConfiguration(sectionName);
-            var proxyUrl = configuration.CheckForValidGptApiKey(sectionName);
-            services.AddChatGpt((services, options) =>
-            {
-                // Configure common properties (message limit and expiration, default parameters, ecc.)
-                options.UseConfiguration(configuration, sectionName);
-                //var accountService = services.GetRequiredService<IAccountService>();
-                //options.UseOpenAI(apiKey);
-            });
+            var openAiClient = configuration.CheckForValidGptApiKey(sectionName);
+            services.AddSingleton(openAiClient);
             return configuration;
         }
 
@@ -72,24 +67,27 @@ namespace LocalGuideAI
             var configurationBuilder = new ConfigurationBuilder();
 
             // Add configuration sources
-            configurationBuilder.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
             configurationBuilder.AddUserSecrets<App>();
             configurationBuilder.AddEnvironmentVariables(prefix);
 
             return configurationBuilder.Build();
         }
 
-        static string CheckForValidGptApiKey(this IConfiguration configuration, string sectionName, string apiKey = "ApiKey", string proxyUrl = "ProxyUrl", string provider = "Provider")
+        static OpenAIClient CheckForValidGptApiKey(this IConfiguration configuration, string sectionName, string apiKey = "ApiKey", string proxyUrl = "https://aoai.hacktogether.net")
         {
             var section = configuration.GetSection(sectionName);
-            if (string.IsNullOrWhiteSpace(section[provider]))
-                section[provider] = sectionName;
             if (string.IsNullOrWhiteSpace(section[apiKey]))
             {
-                section[apiKey] = LlmOptions.StorageKey;
+                section[apiKey] = KeyHelper.StorageKey;
                 System.Diagnostics.Debugger.Break();
             }
-            return section[proxyUrl] ?? "https://aoai.hacktogether.net";
+            // the full key is appended by "/YOUR-GITHUB-ALIAS"
+            AzureKeyCredential token = new(section[apiKey]!);
+            // the full url is appended by /v1/api
+            Uri proxyUri = new($"{proxyUrl}/v1/api");
+            // instantiate the client with the "full" values for the url and key/token
+            OpenAIClient openAiClient = new(proxyUri, token);
+            return openAiClient;
         }
 
         static void Register<TView>(this IServiceCollection services)

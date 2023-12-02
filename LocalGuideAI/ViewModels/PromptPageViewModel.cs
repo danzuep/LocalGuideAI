@@ -1,8 +1,9 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
-using LocalGuideAI.Services;
 using LocalGuideAI.Abstractions;
 using LocalGuideAI.Models;
+using System.Collections.ObjectModel;
+using System.Linq;
 
 namespace LocalGuideAI.ViewModels
 {
@@ -25,7 +26,7 @@ namespace LocalGuideAI.ViewModels
             set
             {
                 if (SetProperty(ref _apiKey, value))
-                    LlmOptions.StorageKey = _apiKey;
+                    KeyHelper.StorageKey = _apiKey;
             }
         }
 
@@ -39,6 +40,8 @@ namespace LocalGuideAI.ViewModels
 
         [ObservableProperty]
         private string recommendationLabelText = "Click the button for recommendations!";
+
+        public ObservableCollection<string> RecommendationText { get; set; } = new();
 
         private static readonly string _itinerary = "itinerary";
         private static readonly byte _days = 2;
@@ -63,21 +66,25 @@ namespace LocalGuideAI.ViewModels
         {
             var daysValue = byte.TryParse(DaysEntryText, out byte days) ? days : _days;
             var prompt = string.Format(_prompt, _itinerary, daysValue, LocationEntryText);
-            string? message = null;
             try
             {
-                if (string.IsNullOrWhiteSpace(_apiKey))
+                RecommendationLabelText = string.Empty;
+                OnPropertyChanged(RecommendationLabelText);
+                using CancellationTokenSource cts = new();
+                await foreach (var fragment in _chatGptService.GetRecommendationAsync(prompt, cts.Token))
                 {
-                    _apiKey = await LlmOptions.GetStorageKeyAsync();
+                    //RecommendationText.Add(fragment);
+                    //OnPropertyChanged("RecommendationText");
+                    RecommendationLabelText += fragment;
+                    OnPropertyChanged("RecommendationLabelText");
+                    await Task.Delay(10);
                 }
-                await _chatGptService.GetRecommendation(prompt);
+                //RecommendationLabelText = string.Concat(RecommendationText);
             }
             catch (Exception ex)
             {
                 await App.Current!.MainPage!.DisplayAlert("API Failure", ex.Message, "OK");
             }
-            if (!string.IsNullOrEmpty(message))
-                RecommendationLabelText = message;
         }
     }
 }

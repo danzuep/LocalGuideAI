@@ -1,34 +1,57 @@
-﻿using ChatGptNet;
+﻿using Azure.AI.OpenAI;
 using LocalGuideAI.Abstractions;
 using System.Net;
+using System.Runtime.CompilerServices;
 
 namespace LocalGuideAI.Services
 {
     internal class ChatGptRecommendationService : IRecommendationService
     {
-        private readonly IChatGptClient _chatGptClient;
+        private readonly OpenAIClient _chatGptClient;
 
-        public ChatGptRecommendationService(IChatGptClient chatGptClient)
+        public ChatGptRecommendationService(OpenAIClient chatGptClient)
         {
-            _chatGptClient = chatGptClient ??
-                throw new NullReferenceException("IChatGptClient missing, Builder.Services.AddChatGpt() required.");
+            _chatGptClient = chatGptClient ?? throw new ArgumentNullException(nameof(chatGptClient));
         }
 
-        private readonly Guid _sessionGuid = Guid.NewGuid();
-
-        /// <exception cref="ArgumentNullException"></exception>
-        /// <exception cref="NullReferenceException"></exception>
-        /// <exception cref="WebException"></exception>
         public async Task<string?> GetRecommendation(string prompt, CancellationToken cancellationToken = default)
+        {
+            var chatCompletionsOptions = GetChatCompletionsOptions(prompt);
+            var response = await _chatGptClient.GetChatCompletionsAsync(chatCompletionsOptions, cancellationToken);
+            var message = response.Value.Choices.FirstOrDefault()?.Message.Content;
+            return message;
+        }
+
+        public async IAsyncEnumerable<string> GetRecommendationAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+        {
+            var chatCompletionsOptions = GetChatCompletionsOptions(prompt);
+            var response = await _chatGptClient.GetChatCompletionsStreamingAsync(chatCompletionsOptions, cancellationToken);
+            await foreach (var fragment in response)
+            {
+                cancellationToken.ThrowIfCancellationRequested();
+                if (!string.IsNullOrEmpty(fragment.ContentUpdate))
+                    yield return fragment.ContentUpdate;
+            }
+        }
+
+        static ChatCompletionsOptions GetChatCompletionsOptions(string prompt)
         {
             ArgumentNullException.ThrowIfNull(nameof(prompt));
             if (Connectivity.Current.NetworkAccess != NetworkAccess.Internet)
                 throw new WebException("No Internet access, check the network connectivity.", WebExceptionStatus.ConnectFailure);
 
-            var response = await _chatGptClient.AskAsync(_sessionGuid, prompt, cancellationToken: cancellationToken);
-            var message = response.GetContent();
+            ChatCompletionsOptions completionOptions = new()
+            {
+                MaxTokens = 2048,
+                Temperature = 0.7f,
+                NucleusSamplingFactor = 0.95f,
+                DeploymentName = "gpt-3.5-turbo"
+            };
 
-            return message;
+            completionOptions.Messages.Add(new ChatMessage(ChatRole.System, "You are a helpful local travel guide who wants newcomers to experience the best of what the locale has to offer."));
+            completionOptions.Messages.Add(new ChatMessage(ChatRole.User, prompt));
+
+            return completionOptions;
         }
     }
 }

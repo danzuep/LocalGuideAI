@@ -35,15 +35,6 @@
                         Text="{Binding DaysEntryText}" />
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
-                    <Label Text="API Key: " VerticalOptions="Center" />
-                    <Entry
-                        x:Name="ApiKeyEntry"
-                        Placeholder="Enter your Chat GPT API key here"
-                        SemanticProperties.Hint="Enter your Chat GPT API key here"
-                        Text="{Binding ApiKey, Mode=OneWayToSource}" />
-                </HorizontalStackLayout>
-
             </FlexLayout>
 
             <Label
@@ -69,9 +60,42 @@
             <Label
                 x:Name="RecommendationLabel"
                 FontSize="18"
-                HorizontalOptions="Center"
+                HorizontalOptions="Start"
+                LineBreakMode="WordWrap"
                 SemanticProperties.HeadingLevel="Level2"
                 Text="{Binding RecommendationLabelText}" />
+
+            <!--<FlexLayout
+                AlignItems="Start"
+                BindableLayout.ItemsSource="{Binding RecommendationText}"
+                Direction="Row"
+                JustifyContent="Start"
+                Wrap="Wrap">
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <Label
+                            FontSize="16"
+                            LineBreakMode="WordWrap"
+                            Text="{Binding .}"
+                            VerticalOptions="Center" />
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </FlexLayout>-->
+
+            <!--<CollectionView ItemsSource="{Binding RecommendationText}">
+                <CollectionView.ItemsLayout>
+                    <LinearItemsLayout ItemSpacing="0" Orientation="Horizontal" />
+                </CollectionView.ItemsLayout>
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Editor
+                            FontSize="16"
+                            HorizontalOptions="Start"
+                            Text="{Binding .}"
+                            VerticalOptions="Center" />
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>-->
 
         </VerticalStackLayout>
 
