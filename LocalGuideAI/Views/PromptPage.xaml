@@ -6,9 +6,18 @@
     xmlns:views="clr-namespace:LocalGuideAI.Views"
     xmlns:vm="clr-namespace:LocalGuideAI.ViewModels"
     x:DataType="vm:PromptPageViewModel">
-    <!--<ContentPage.BindingContext>
+    <!--
+    <ContentPage.BindingContext>
         <vm:PromptPageViewModel />
-    </ContentPage.BindingContext>-->
+    </ContentPage.BindingContext>
+    -->
+    <ContentPage.ToolbarItems>
+        <ToolbarItem
+            Command="{Binding NavigateCommand}"
+            CommandParameter="{x:Type views:SettingsPage}"
+            IconImageSource="{StaticResource settingsFontIcon}"
+            Text="Setup" />
+    </ContentPage.ToolbarItems>
 
     <ScrollView>
 
@@ -64,38 +73,6 @@
                 LineBreakMode="WordWrap"
                 SemanticProperties.HeadingLevel="Level2"
                 Text="{Binding RecommendationLabelText}" />
-
-            <!--<FlexLayout
-                AlignItems="Start"
-                BindableLayout.ItemsSource="{Binding RecommendationText}"
-                Direction="Row"
-                JustifyContent="Start"
-                Wrap="Wrap">
-                <BindableLayout.ItemTemplate>
-                    <DataTemplate>
-                        <Label
-                            FontSize="16"
-                            LineBreakMode="WordWrap"
-                            Text="{Binding .}"
-                            VerticalOptions="Center" />
-                    </DataTemplate>
-                </BindableLayout.ItemTemplate>
-            </FlexLayout>-->
-
-            <!--<CollectionView ItemsSource="{Binding RecommendationText}">
-                <CollectionView.ItemsLayout>
-                    <LinearItemsLayout ItemSpacing="0" Orientation="Horizontal" />
-                </CollectionView.ItemsLayout>
-                <CollectionView.ItemTemplate>
-                    <DataTemplate>
-                        <Editor
-                            FontSize="16"
-                            HorizontalOptions="Start"
-                            Text="{Binding .}"
-                            VerticalOptions="Center" />
-                    </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>-->
 
         </VerticalStackLayout>
 

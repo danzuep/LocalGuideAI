@@ -5,7 +5,7 @@ using System.Runtime.CompilerServices;
 
 namespace LocalGuideAI.Services
 {
-    internal class ChatGptRecommendationService : IRecommendationService
+    internal sealed class ChatGptRecommendationService : IRecommendationService
     {
         private readonly OpenAIClient _chatGptClient;
 

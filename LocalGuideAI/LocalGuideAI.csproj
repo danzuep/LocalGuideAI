@@ -78,4 +78,15 @@
     <None Include="../*" LinkBase="Solution Items" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Remove="Resources\Fonts\MaterialIcons-Regular.ttf" />
+    <None Remove="Resources\Fonts\MaterialIconsOutlined-Regular.otf" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Views\SettingsPage.xaml.cs">
+      <DependentUpon>SettingsPage.xaml</DependentUpon>
+    </Compile>
+  </ItemGroup>
+
 </Project>

@@ -24,6 +24,8 @@ namespace LocalGuideAI
                 {
                     fonts.AddFont("OpenSans-Regular.ttf", "OpenSansRegular");
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
+                    fonts.AddFont("MaterialIcons-Regular.ttf", "Material");
+                    fonts.AddFont("MaterialIconsOutlined-Regular.ttf", "MaterialOutlined");
                 });
 #if DEBUG
             builder.Logging.AddDebug();
@@ -46,6 +48,7 @@ namespace LocalGuideAI
             services.AddSingleton<IRecommendationService, ChatGptRecommendationService>();
 
             // Views and ViewModels
+            services.Register<SettingsPage>();
             services.Register<PromptPage, PromptPageViewModel>();
 
             var provider = services.BuildServiceProvider();
@@ -80,6 +83,11 @@ namespace LocalGuideAI
             {
                 section[apiKey] = KeyHelper.StorageKey;
                 System.Diagnostics.Debugger.Break();
+            }
+            else
+            {
+                KeyHelper.StorageKey = section[apiKey];
+                KeyHelper.StorageUrl = proxyUrl;
             }
             // the full key is appended by "/YOUR-GITHUB-ALIAS"
             AzureKeyCredential token = new(section[apiKey]!);

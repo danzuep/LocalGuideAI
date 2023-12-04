@@ -2,7 +2,7 @@
 
 namespace LocalGuideAI.Views
 {
-    public partial class PromptPage : ContentPage
+    public sealed partial class PromptPage : ContentPage
     {
         public PromptPage() => InitializeComponent();
 

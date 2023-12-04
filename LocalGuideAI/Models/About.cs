@@ -1,6 +1,6 @@
 ﻿namespace LocalGuideAI.Models;
 
-internal class About
+public sealed class About
 {
     public string Title => AppInfo.Name;
     public string Version => AppInfo.VersionString;

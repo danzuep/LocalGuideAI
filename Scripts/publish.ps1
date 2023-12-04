@@ -6,7 +6,7 @@ if ([string]::IsNullOrEmpty($Env:AndroidSigningPassword))
 
 $buildVersion="0.1.0";
 $dotnetTarget="net8.0";
-$buildConfiguration="Release";
+$configuration="Release";
 $projectDirectory = (Get-Item (Split-Path -Path $PSScriptRoot -Parent));
 $projectFolder = $projectDirectory.FullName;
 $projectName = $projectDirectory.BaseName;
@@ -24,8 +24,9 @@ if (-not $?) {
 $keystoreFile="android.keystore";
 $androidSigningAlias="android-key";
 $androidPackageFormats="apk"; # "aab;apk"
-$androidTarget="${dotnetTarget}-android";
+$targetFramework="${dotnetTarget}-android";
 $publishOutputFolder="publish";
+$publishPath = [IO.Path]::Combine($projectFolder, $publishOutputFolder);
 $kestoreFolder = [IO.Path]::Combine($Env:LOCALAPPDATA, "Android");
 if (-Not (Test-Path -Path "${kestoreFolder}" -PathType Container))
 {
@@ -39,4 +40,9 @@ if (-Not (Test-Path -Path "${kestorePath}" -PathType Leaf))
     keytool -list -keystore "${kestorePath}";
 }
 
-dotnet publish "${projectFile}" -c $buildConfiguration --framework $androidTarget /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats /p:AndroidKeyStore=true /p:AndroidSigningKeyStore="${kestorePath}" /p:AndroidSigningKeyAlias="${androidSigningAlias}" /p:AndroidSigningKeyPass="${Env:AndroidSigningPassword}" /p:AndroidSigningStorePass="${Env:AndroidSigningPassword}" -o "${publishOutputFolder}" --no-restore --nologo;
+dotnet publish "${projectFile}" -c $configuration --framework $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats /p:AndroidKeyStore=true /p:AndroidSigningKeyStore="${kestorePath}" /p:AndroidSigningKeyAlias="${androidSigningAlias}" /p:AndroidSigningKeyPass="${Env:AndroidSigningPassword}" /p:AndroidSigningStorePass="${Env:AndroidSigningPassword}" -o "${publishOutputFolder}" --no-restore --nologo;
+if (-not $?) {
+    Write-Host "Project failed to publish.";
+    Exit 1;
+}
+Write-Host "Project published to ${publishPath}.";

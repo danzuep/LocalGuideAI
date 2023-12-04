@@ -1,14 +1,15 @@
 ﻿using CommunityToolkit.Mvvm.Input;
 using CommunityToolkit.Mvvm.ComponentModel;
 using LocalGuideAI.Abstractions;
-using LocalGuideAI.Models;
-using System.Collections.ObjectModel;
-using System.Linq;
+using System.Windows.Input;
 
 namespace LocalGuideAI.ViewModels
 {
     public sealed partial class PromptPageViewModel : ObservableObject
     {
+        public ICommand NavigateCommand => new Command<Type>(
+            async (type) => await AppShell.Current.GoToAsync(type.Name));
+
         public string Prompt
         {
             get
@@ -16,17 +17,6 @@ namespace LocalGuideAI.ViewModels
                 var daysValue = byte.TryParse(DaysEntryText, out byte days) ? days : _days;
                 var locationValue = !string.IsNullOrWhiteSpace(LocationEntryText) ? LocationEntryText : _hongKong;
                 return string.Format(_prompt, _itinerary, daysValue, locationValue);
-            }
-        }
-
-        private string? _apiKey;
-        public string? ApiKey
-        {
-            get => _apiKey;
-            set
-            {
-                if (SetProperty(ref _apiKey, value))
-                    KeyHelper.StorageKey = _apiKey;
             }
         }
 
@@ -39,9 +29,7 @@ namespace LocalGuideAI.ViewModels
         private string daysEntryText = "2";
 
         [ObservableProperty]
-        private string recommendationLabelText = "Click the button for recommendations!";
-
-        public ObservableCollection<string> RecommendationText { get; set; } = new();
+        private string recommendationLabelText = string.Empty;
 
         private static readonly string _itinerary = "itinerary";
         private static readonly byte _days = 2;
@@ -68,18 +56,13 @@ namespace LocalGuideAI.ViewModels
             var prompt = string.Format(_prompt, _itinerary, daysValue, LocationEntryText);
             try
             {
-                RecommendationLabelText = string.Empty;
-                OnPropertyChanged(RecommendationLabelText);
                 using CancellationTokenSource cts = new();
                 await foreach (var fragment in _chatGptService.GetRecommendationAsync(prompt, cts.Token))
                 {
-                    //RecommendationText.Add(fragment);
-                    //OnPropertyChanged("RecommendationText");
                     RecommendationLabelText += fragment;
                     OnPropertyChanged("RecommendationLabelText");
                     await Task.Delay(10);
                 }
-                //RecommendationLabelText = string.Concat(RecommendationText);
             }
             catch (Exception ex)
             {
