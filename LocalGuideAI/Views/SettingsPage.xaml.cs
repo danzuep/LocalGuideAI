@@ -1,5 +1,6 @@
 using LocalGuideAI.Models;
 using LocalGuideAI.Services;
+using System.Windows.Input;
 
 namespace LocalGuideAI.Views
 {
@@ -15,8 +16,8 @@ namespace LocalGuideAI.Views
             await Task.CompletedTask;
             base.OnAppearing();
             BindingContext = this;
-            ApiKey = await KeyHelper.GetKeyAsync();
-            ApiUrl = await KeyHelper.GetUrlAsync();
+            ApiKey = await StorageHelper.GetKeyAsync();
+            ApiUrl = await StorageHelper.GetUrlAsync();
         }
 
         private string? _apiKey;
@@ -65,9 +66,10 @@ namespace LocalGuideAI.Views
 
         private async void OnSaveButtonClicked(object sender, EventArgs e)
         {
-            await KeyHelper.SetKeyAsync(ApiKey);
-            await KeyHelper.SetUrlAsync(ApiUrl);
+            await StorageHelper.SetKeyAsync(ApiKey);
+            await StorageHelper.SetUrlAsync(ApiUrl);
             SemanticScreenReader.Announce(SaveButton.Text);
+            await Shell.Current.Navigation.PopAsync();
         }
     }
 }

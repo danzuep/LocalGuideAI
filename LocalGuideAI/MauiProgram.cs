@@ -3,12 +3,12 @@ using Azure;
 using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using LocalGuideAI.Abstractions;
-using LocalGuideAI.Models;
 using LocalGuideAI.Services;
 using LocalGuideAI.ViewModels;
 using LocalGuideAI.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using Microsoft.Maui.Controls;
 
 namespace LocalGuideAI
 {
@@ -43,8 +43,11 @@ namespace LocalGuideAI
 
         static IServiceProvider Register(this IServiceCollection services)
         {
+            var configuration = ChatGptClientFactory.BuildConfiguration();
+
             // Services
-            services.AddChatGptConfiguration();
+            services.AddSingleton(configuration);
+            services.AddSingleton<IChatGptClientFactory, ChatGptClientFactory>();
             services.AddSingleton<IRecommendationService, ChatGptRecommendationService>();
 
             // Views and ViewModels
@@ -55,47 +58,6 @@ namespace LocalGuideAI
             Ioc.Default.ConfigureServices(provider);
 
             return provider;
-        }
-
-        static IConfiguration AddChatGptConfiguration(this IServiceCollection services, string sectionName = "Azure")
-        {
-            var configuration = BuildConfiguration(sectionName);
-            var openAiClient = configuration.CheckForValidGptApiKey(sectionName);
-            services.AddSingleton(openAiClient);
-            return configuration;
-        }
-
-        static IConfiguration BuildConfiguration(string? prefix)
-        {
-            var configurationBuilder = new ConfigurationBuilder();
-
-            // Add configuration sources
-            configurationBuilder.AddUserSecrets<App>();
-            configurationBuilder.AddEnvironmentVariables(prefix);
-
-            return configurationBuilder.Build();
-        }
-
-        static OpenAIClient CheckForValidGptApiKey(this IConfiguration configuration, string sectionName, string apiKey = "ApiKey", string proxyUrl = "https://aoai.hacktogether.net")
-        {
-            var section = configuration.GetSection(sectionName);
-            if (string.IsNullOrWhiteSpace(section[apiKey]))
-            {
-                section[apiKey] = KeyHelper.StorageKey;
-                System.Diagnostics.Debugger.Break();
-            }
-            else
-            {
-                KeyHelper.StorageKey = section[apiKey];
-                KeyHelper.StorageUrl = proxyUrl;
-            }
-            // the full key is appended by "/YOUR-GITHUB-ALIAS"
-            AzureKeyCredential token = new(section[apiKey]!);
-            // the full url is appended by /v1/api
-            Uri proxyUri = new($"{proxyUrl}/v1/api");
-            // instantiate the client with the "full" values for the url and key/token
-            OpenAIClient openAiClient = new(proxyUri, token);
-            return openAiClient;
         }
 
         static void Register<TView>(this IServiceCollection services)

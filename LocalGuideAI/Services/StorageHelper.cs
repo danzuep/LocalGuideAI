@@ -1,17 +1,17 @@
 ﻿namespace LocalGuideAI.Services
 {
-    internal sealed class KeyHelper
+    internal sealed class StorageHelper
     {
         internal static readonly string _storageKeyName = "chat_gpt_api_key";
         internal static readonly string _storageUrlName = "chat_gpt_api_url";
 
-        internal static string? StorageKey
+        internal static string? ApiKey
         {
             get => GetKeyAsync().GetAwaiter().GetResult();
             set => SetKeyAsync(value).GetAwaiter().GetResult();
         }
 
-        internal static string? StorageUrl
+        internal static string? ApiUrl
         {
             get => GetUrlAsync().GetAwaiter().GetResult();
             set => SetUrlAsync(value).GetAwaiter().GetResult();

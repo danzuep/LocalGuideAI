@@ -25,7 +25,7 @@
 
             <FlexLayout HorizontalOptions="Center" Wrap="Wrap">
 
-                <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
+                <HorizontalStackLayout Padding="0,0,10,0" Spacing="15">
                     <Label Text="Location: " VerticalOptions="Center" />
                     <Entry
                         x:Name="LocationEntry"
@@ -34,7 +34,7 @@
                         Text="{Binding LocationEntryText}" />
                 </HorizontalStackLayout>
 
-                <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
+                <HorizontalStackLayout Padding="0,0,10,0" Spacing="15">
                     <Label Text="Days: " VerticalOptions="Center" />
                     <Entry
                         x:Name="DaysEntry"
@@ -48,6 +48,7 @@
 
             <Label
                 x:Name="PromptLabel"
+                Padding="10,0"
                 FontSize="18"
                 HorizontalOptions="Center"
                 SemanticProperties.HeadingLevel="Level3"
@@ -61,13 +62,8 @@
                 Text="Get travel recommendations" />
 
             <Label
-                x:Name="GeneratorLabel"
-                HorizontalOptions="Center"
-                SemanticProperties.HeadingLevel="Level2"
-                Text="" />
-
-            <Label
                 x:Name="RecommendationLabel"
+                Padding="10,0"
                 FontSize="18"
                 HorizontalOptions="Start"
                 LineBreakMode="WordWrap"

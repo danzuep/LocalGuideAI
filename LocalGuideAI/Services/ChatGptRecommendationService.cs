@@ -7,25 +7,20 @@ namespace LocalGuideAI.Services
 {
     internal sealed class ChatGptRecommendationService : IRecommendationService
     {
-        private readonly OpenAIClient _chatGptClient;
+        private readonly IChatGptClientFactory _chatGptClientFactory;
 
-        public ChatGptRecommendationService(OpenAIClient chatGptClient)
+        public ChatGptRecommendationService(IChatGptClientFactory chatGptClientFactory)
         {
-            _chatGptClient = chatGptClient ?? throw new ArgumentNullException(nameof(chatGptClient));
-        }
-
-        public async Task<string?> GetRecommendation(string prompt, CancellationToken cancellationToken = default)
-        {
-            var chatCompletionsOptions = GetChatCompletionsOptions(prompt);
-            var response = await _chatGptClient.GetChatCompletionsAsync(chatCompletionsOptions, cancellationToken);
-            var message = response.Value.Choices.FirstOrDefault()?.Message.Content;
-            return message;
+            _chatGptClientFactory = chatGptClientFactory ?? throw new ArgumentNullException(nameof(chatGptClientFactory));
         }
 
         public async IAsyncEnumerable<string> GetRecommendationAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var chatCompletionsOptions = GetChatCompletionsOptions(prompt);
-            var response = await _chatGptClient.GetChatCompletionsStreamingAsync(chatCompletionsOptions, cancellationToken);
+            var key = await StorageHelper.GetKeyAsync();
+            var url = await StorageHelper.GetUrlAsync();
+            var chatGptClient = _chatGptClientFactory.Create(key, url);
+            var response = await chatGptClient.GetChatCompletionsStreamingAsync(chatCompletionsOptions, cancellationToken);
             await foreach (var fragment in response)
             {
                 cancellationToken.ThrowIfCancellationRequested();

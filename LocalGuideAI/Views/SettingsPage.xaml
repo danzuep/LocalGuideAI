@@ -7,7 +7,7 @@
     <ScrollView>
 
         <VerticalStackLayout
-            Padding="30"
+            Padding="10,0,0,0"
             HorizontalOptions="Center"
             Spacing="25"
             VerticalOptions="Center">
@@ -18,23 +18,29 @@
                 SemanticProperties.HeadingLevel="Level3"
                 Text="{Binding About, Mode=OneWay, StringFormat='{0} Settings'}" />
 
-            <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
-                <Label Text="API Key: " VerticalOptions="Center" />
+            <FlexLayout Wrap="Wrap">
+                <Label
+                    Padding="0,0,10,0"
+                    Text="API Key: "
+                    VerticalOptions="Center" />
                 <Entry
                     x:Name="ApiKeyEntry"
                     Placeholder="Enter your ChatGPT API key here"
                     SemanticProperties.Hint="Enter your Chat GPT API key here"
-                    Text="{Binding ApiKey, Mode=TwoWay}" />
-            </HorizontalStackLayout>
+                    Text="{Binding ApiKey, Mode=OneWayToSource}" />
+            </FlexLayout>
 
-            <HorizontalStackLayout Margin="0,0,10,0" Spacing="15">
-                <Label Text="ChatGPT URL: " VerticalOptions="Center" />
+            <FlexLayout Wrap="Wrap">
+                <Label
+                    Padding="0,0,10,0"
+                    Text="ChatGPT URL: "
+                    VerticalOptions="Center" />
                 <Entry
                     x:Name="UrlEntry"
                     Placeholder="Enter the ChatGPT URL here"
                     SemanticProperties.Hint="Enter the Chat GPT URL here"
                     Text="{Binding ApiUrl, Mode=TwoWay}" />
-            </HorizontalStackLayout>
+            </FlexLayout>
 
             <Button
                 x:Name="SaveButton"
