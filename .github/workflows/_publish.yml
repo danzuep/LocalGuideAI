@@ -1,0 +1,71 @@
+name: 🚀 Deploy to NuGet
+run-name: Deploy ${{ inputs.projectName }} NuGet package
+
+on:
+  workflow_call:
+    inputs:
+      projectName:
+        description: 'The name of the project'
+        required: false
+        type: string
+      projectFile:
+        description: 'The project file path'
+        required: true
+        type: string
+      version:
+        description: 'Package version suffix'
+        required: true
+        type: string
+      environment:
+        description: 'The publish environment'
+        default: release
+        type: string
+      configuration:
+        description: 'The publish configuration'
+        default: Release
+        type: string
+    secrets:
+      envPAT:
+        required: true
+
+jobs:
+  deploy:
+    name: 🚀 ${{ inputs.projectName }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    environment: ${{ inputs.environment }}
+
+    steps:
+    # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
+    - name: Checkout the source repository from Git
+      uses: actions/checkout@v4
+
+    # https://github.com/actions/setup-dotnet
+    - name: Get .NET externals
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: 8.0.x
+        dotnet-quality: 'ga'
+  
+    # https://github.com/actions/cache/blob/main/examples.md#c---nuget
+    - name: Get any cached NuGet packages from the last run
+      uses: actions/cache@v3
+      with:
+        path: '~/.nuget/packages'
+        key: nugetpackages-${{ runner.os }}-${{ hashFiles('source/**/*.csproj') }}
+        restore-keys: nugetpackages-${{ runner.os }}
+
+    - name: Publish Android package
+      run: dotnet publish $projectFile -c $configuration -f $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats -o $publishOutputFolder --nologo;
+      env:
+        projectFile: '${{ inputs.projectFile }}'
+        buildVersion: '${{ inputs.version }}'
+        configuration: ${{ inputs.configuration }}
+        targetFramework: "net8.0-android"
+        androidPackageFormats: "apk" # "aab;apk"
+        publishOutputFolder: "publish"
+
+    - name: Markdown workflow job summary
+      run: echo "### ${{ inputs.projectName }} ${{ inputs.version }} apk published" >> $GITHUB_STEP_SUMMARY
