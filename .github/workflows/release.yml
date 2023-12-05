@@ -25,6 +25,6 @@ jobs:
     uses: ./.github/workflows/_publish.yml
     with:
       projectName: ${{ needs.version.outputs.projectName }}
-      projectFile: ${{ needs.version.outputs.projectFiles }}
+      projectFile: ${{ needs.version.outputs.projectFile }}
       version: ${{ needs.version.outputs.semVer }}
     secrets: inherit

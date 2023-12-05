@@ -1,5 +1,5 @@
 name: Development
-run-name: Build release notes up to the last tag
+run-name: Get version and build release notes
 
 on:
   workflow_dispatch:

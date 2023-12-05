@@ -1,6 +1,6 @@
 # LocalGuideAI
 
-Local Guide app using ChatGPT AI, a project for Microsoft Hack Together: The Great .NET 8 Hack.
+A local guide in the form of an app that uses ChatGPT AI. A project for Microsoft Hack Together: The Great .NET 8 Hack.
 
 ![PC](https://raw.githubusercontent.com/danzuep/LocalGuideAI/main/Assets/Animations/PC.gif)
 
