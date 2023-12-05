@@ -7,51 +7,47 @@ namespace LocalGuideAI.Services
 {
     internal sealed class ChatGptClientFactory : IChatGptClientFactory
     {
-        private readonly IConfiguration _configuration;
+        private readonly string? _apiKey;
+        private readonly string? _proxyUrl;
 
         public ChatGptClientFactory(IConfiguration configuration)
         {
-            _configuration = configuration;
+            (_apiKey, _proxyUrl) = InitializeApiValues(configuration);
         }
 
-        public static IConfiguration BuildConfiguration(string? prefix = "Azure")
-        {
-            var configurationBuilder = new ConfigurationBuilder();
-            if (DeviceInfo.Platform == DevicePlatform.WinUI)
-            {
-#if WINDOWS
-                // Add configuration sources
-                configurationBuilder.AddUserSecrets<App>();
-                configurationBuilder.AddEnvironmentVariables(prefix);
-#endif
-            }
-            var configuration = configurationBuilder.Build();
-            return configuration;
-        }
-
-        static string TestApiConfiguration(IConfiguration configuration, string? proxyUrl, string sectionName = "Azure", string apiKey = "ApiKey")
+        static (string?, string?) InitializeApiValues(IConfiguration configuration, string sectionName = "Azure")
         {
             var section = configuration.GetSection(sectionName);
-            if (string.IsNullOrWhiteSpace(section[apiKey]))
-            {
-                if (section.GetSection(apiKey).Exists())
-                {
-                    System.Diagnostics.Debugger.Break();
-                    section[apiKey] = StorageHelper.ApiKey;
-                }
-            }
-            else
-            {
-                StorageHelper.ApiKey = section[apiKey];
-                StorageHelper.ApiUrl = proxyUrl;
-            }
-            ArgumentException.ThrowIfNullOrWhiteSpace(section[apiKey], nameof(apiKey));
-            return section[apiKey]!;
+            var apiUrl = InitializeProxyUrl(section);
+            var apiKey = InitializeApiKey(section);
+            return (apiKey, apiUrl);
         }
 
-        public OpenAIClient Create(string? apiKey = null, string? proxyUrl = "https://aoai.hacktogether.net")
+        static string? InitializeApiKey(IConfiguration section, string? apiKeyValue = null, string apiKeyName = "ApiKey")
         {
-            apiKey ??= TestApiConfiguration(_configuration, proxyUrl);
+            var apiKey = section[apiKeyName];
+            if (!string.IsNullOrWhiteSpace(apiKey))
+                apiKeyValue = apiKey;
+            if (!string.IsNullOrWhiteSpace(apiKeyValue))
+                StorageHelper.ApiKey = apiKeyValue;
+            return apiKeyValue;
+        }
+
+        static string? InitializeProxyUrl(IConfiguration section, string? proxyUrl = "https://aoai.hacktogether.net", string apiUrlName = "ProxyUrl")
+        {
+            var apiUrl = section[apiUrlName];
+            if (!string.IsNullOrWhiteSpace(apiUrl))
+                proxyUrl = apiUrl;
+            if (!string.IsNullOrWhiteSpace(proxyUrl))
+                StorageHelper.ApiUrl = proxyUrl;
+            return proxyUrl;
+        }
+
+        public async Task<OpenAIClient> CreateAsync()
+        {
+            var apiKey = await StorageHelper.GetKeyAsync() ?? _apiKey;
+            var proxyUrl = await StorageHelper.GetUrlAsync() ?? _proxyUrl;
+            ArgumentException.ThrowIfNullOrWhiteSpace(apiKey, nameof(apiKey));
             // the full key is appended by "/YOUR-GITHUB-ALIAS"
             AzureKeyCredential token = new(apiKey);
             // the full url is appended by /v1/api

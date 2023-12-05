@@ -17,9 +17,7 @@ namespace LocalGuideAI.Services
         public async IAsyncEnumerable<string> GetRecommendationAsync(string prompt, [EnumeratorCancellation] CancellationToken cancellationToken = default)
         {
             var chatCompletionsOptions = GetChatCompletionsOptions(prompt);
-            var key = await StorageHelper.GetKeyAsync();
-            var url = await StorageHelper.GetUrlAsync();
-            var chatGptClient = _chatGptClientFactory.Create(key, url);
+            var chatGptClient = await _chatGptClientFactory.CreateAsync();
             var response = await chatGptClient.GetChatCompletionsStreamingAsync(chatCompletionsOptions, cancellationToken);
             await foreach (var fragment in response)
             {

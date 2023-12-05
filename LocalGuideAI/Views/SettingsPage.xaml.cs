@@ -1,6 +1,5 @@
 using LocalGuideAI.Models;
 using LocalGuideAI.Services;
-using System.Windows.Input;
 
 namespace LocalGuideAI.Views
 {

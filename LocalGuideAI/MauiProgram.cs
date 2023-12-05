@@ -1,6 +1,4 @@
-﻿using Azure.AI.OpenAI;
-using Azure;
-using CommunityToolkit.Maui;
+﻿using CommunityToolkit.Maui;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using LocalGuideAI.Abstractions;
 using LocalGuideAI.Services;
@@ -8,7 +6,6 @@ using LocalGuideAI.ViewModels;
 using LocalGuideAI.Views;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using Microsoft.Maui.Controls;
 
 namespace LocalGuideAI
 {
@@ -43,7 +40,7 @@ namespace LocalGuideAI
 
         static IServiceProvider Register(this IServiceCollection services)
         {
-            var configuration = ChatGptClientFactory.BuildConfiguration();
+            var configuration = BuildConfiguration();
 
             // Services
             services.AddSingleton(configuration);
@@ -58,6 +55,21 @@ namespace LocalGuideAI
             Ioc.Default.ConfigureServices(provider);
 
             return provider;
+        }
+
+        public static IConfiguration BuildConfiguration(string? prefix = "Azure")
+        {
+            var configurationBuilder = new ConfigurationBuilder();
+            if (DeviceInfo.Platform == DevicePlatform.WinUI)
+            {
+#if WINDOWS
+                // Add configuration sources
+                configurationBuilder.AddUserSecrets<App>();
+                configurationBuilder.AddEnvironmentVariables(prefix);
+#endif
+            }
+            var configuration = configurationBuilder.Build();
+            return configuration;
         }
 
         static void Register<TView>(this IServiceCollection services)
