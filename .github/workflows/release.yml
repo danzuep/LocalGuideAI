@@ -8,6 +8,7 @@ on:
       - 'v[0-9]+.[0-9]+.*'
     branches:
       - release/**
+      - devops
 
 # Cancel any other running workflows with the same ID
 concurrency:

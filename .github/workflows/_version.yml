@@ -30,82 +30,82 @@ jobs:
       projectFile: ${{ steps.metadata.outputs.projectFile }}
 
     steps:
-    # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
-    - name: Fetch all tags and branches for GitVersion
-      uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
+      # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
+      - name: Fetch all tags and branches for GitVersion
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
-    - name: Get Git repository project name and list all project files in the directory
-      id: metadata
-      shell: bash
-      run: |
-        repositoryName=$(basename '${{ github.repository }}')
-        echo "Project name: $repositoryName"
-        shopt -s globstar
-        for project in ./**/*.csproj; do
-          echo "Project file: $project"
-          projectFile=${project}
-        done
-        echo "projectName=${repositoryName}" >> $GITHUB_ENV
-        echo "projectName=${repositoryName}" >> $GITHUB_OUTPUT
-        echo "projectFile=${projectFile}" >> $GITHUB_ENV
-        echo "projectFile=${projectFile}" >> $GITHUB_OUTPUT
+      - name: Get Git repository project name and list all project files in the directory
+        id: metadata
+        shell: bash
+        run: |
+          repositoryName=$(basename '${{ github.repository }}')
+          echo "Project name: $repositoryName"
+          shopt -s globstar
+          for project in ./**/*.csproj; do
+            echo "Project file: $project"
+            projectFile=${project}
+          done
+          echo "projectName=${repositoryName}" >> $GITHUB_ENV
+          echo "projectName=${repositoryName}" >> $GITHUB_OUTPUT
+          echo "projectFile=${projectFile}" >> $GITHUB_ENV
+          echo "projectFile=${projectFile}" >> $GITHUB_OUTPUT
 
-    - run: |
-        echo "Generate release notes from the Git commit log."
-        echo "## $projectName" > release-notes.txt
-        git log --pretty=format:"- %s" >> release-notes.txt
+      - run: |
+          echo "Generate release notes from the Git commit log."
+          echo "## $projectName" > release-notes.txt
+          git log --pretty=format:"- %s" >> release-notes.txt
 
-    # # TODO: fix this
-    # - run: |
-    #     echo "Generate release notes from the Git commit log."
-    #     last_tag=$(git describe --abbrev=0 --tags 2>/dev/null)
-    #     if [[ -z "$last_tag" ]]; then
-    #       echo "## $projectName" > release-notes.txt
-    #       git log --pretty=format:"- %s" >> release-notes.txt
-    #     else
-    #       echo "## $projectName changes since $last_tag" > release-notes.txt
-    #       git log --pretty=format:"- %s" --since="$last_tag" >> release-notes.txt
-    #     fi
+      # # TODO: fix this
+      # - run: |
+      #     echo "Generate release notes from the Git commit log."
+      #     last_tag=$(git describe --abbrev=0 --tags 2>/dev/null)
+      #     if [[ -z "$last_tag" ]]; then
+      #       echo "## $projectName" > release-notes.txt
+      #       git log --pretty=format:"- %s" >> release-notes.txt
+      #     else
+      #       echo "## $projectName changes since $last_tag" > release-notes.txt
+      #       git log --pretty=format:"- %s" --since="$last_tag" >> release-notes.txt
+      #     fi
 
-    # https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/setup/usage-examples.md#example-1
-    - name: Set up GitVersion
-      uses: gittools/actions/gitversion/setup@v0
-      with:
-        versionSpec: '5.x'
+      # https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/setup/usage-examples.md#example-1
+      - name: Set up GitVersion
+        uses: gittools/actions/gitversion/setup@v0
+        with:
+          versionSpec: '5.x'
 
-    # https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/execute/usage-examples.md#example-5
-    # For a list of all GitVersion Version Variables, see https://gitversion.net/docs/reference/variables
-    # pwsh> dotnet-gitversion | ConvertFrom-Json
-    - name: Use GitVersion to determine version
-      id: gitversion # e.g. steps.gitversion.outputs.<outputName>
-      uses: gittools/actions/gitversion/execute@v0
+      # https://github.com/GitTools/actions/blob/main/docs/examples/github/gitversion/execute/usage-examples.md#example-5
+      # For a list of all GitVersion Version Variables, see https://gitversion.net/docs/reference/variables
+      # pwsh> dotnet-gitversion | ConvertFrom-Json
+      - name: Use GitVersion to determine version
+        id: gitversion # e.g. steps.gitversion.outputs.<outputName>
+        uses: gittools/actions/gitversion/execute@v0
 
-    - run: |
-        echo 'Save the GitVersion environment variables to a file.'
-        echo "projectName=${projectName}" > version.txt
-        echo "projectFile=${projectFile}" >> version.txt
-        for var in $(env | grep '^GitVersion_' | cut -d= -f1); do
-            echo "$var=${!var}" >> version.txt
-        done
+      - run: |
+          echo 'Save the GitVersion environment variables to a file.'
+          echo "projectName=${projectName}" > version.txt
+          echo "projectFile=${projectFile}" >> version.txt
+          for var in $(env | grep '^GitVersion_' | cut -d= -f1); do
+              echo "$var=${!var}" >> version.txt
+          done
 
-    # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
-    - name: Markdown workflow job summary
-      run: |
-        echo '### ${{ env.workflowVersion }} build summary' >> $GITHUB_STEP_SUMMARY
-        echo "Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
-        echo "Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-        echo 'Commit Date: ${{ steps.gitversion.outputs.commitDate }}' >> $GITHUB_STEP_SUMMARY
-        echo 'Full Semantic Version: ${{ steps.gitversion.outputs.fullSemVer }}' >> $GITHUB_STEP_SUMMARY
-        echo 'Pre-release Label: ${{ steps.gitversion.outputs.preReleaseLabel }}' >> $GITHUB_STEP_SUMMARY
-      env:
-        workflowVersion: '${{ steps.metadata.outputs.projectName }} version ${{ steps.gitversion.outputs.semVer }}'
+      # https://docs.github.com/en/actions/using-workflows/workflow-commands-for-github-actions#adding-a-job-summary
+      - name: Markdown workflow job summary
+        run: |
+          echo '### ${{ env.workflowVersion }} build summary' >> $GITHUB_STEP_SUMMARY
+          echo "Repository: ${{ github.repository }}" >> $GITHUB_STEP_SUMMARY
+          echo "Branch: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo 'Commit Date: ${{ steps.gitversion.outputs.commitDate }}' >> $GITHUB_STEP_SUMMARY
+          echo 'Full Semantic Version: ${{ steps.gitversion.outputs.fullSemVer }}' >> $GITHUB_STEP_SUMMARY
+          echo 'Pre-release Label: ${{ steps.gitversion.outputs.preReleaseLabel }}' >> $GITHUB_STEP_SUMMARY
+        env:
+          workflowVersion: '${{ steps.metadata.outputs.projectName }} version ${{ steps.gitversion.outputs.semVer }}'
 
-    # https://github.com/actions/upload-artifact
-    - name: Upload version artifacts
-      uses: actions/upload-artifact@v3
-      with:
-        path: |
-          version.txt
-          release-notes.txt
+      # https://github.com/actions/upload-artifact
+      - name: Upload version artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          path: |
+            version.txt
+            release-notes.txt

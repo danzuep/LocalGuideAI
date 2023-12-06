@@ -1,5 +1,5 @@
 name: 🚀 Publish Android package
-run-name: Publish ${{ inputs.projectName }} Android package
+run-name: Publish Android package
 
 on:
   workflow_call:
@@ -25,6 +25,15 @@ on:
         default: Release
         type: string
 
+env:
+    DotNetVersion: 8.0.x
+    DotNetTarget: net8.0
+    # https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet8/nuget/v3/index.json
+    SourceLink: https://aka.ms/dotnet8/nuget/index.json
+    # https://maui.blob.core.windows.net/metadata/rollbacks/net8.0.json
+    RollbackLink: https://aka.ms/dotnet/maui/net8.0.json
+    NuGetLink: https://api.nuget.org/v3/index.json
+
 jobs:
   deploy:
     name: Android
@@ -32,31 +41,71 @@ jobs:
     environment: ${{ inputs.environment }}
 
     steps:
-    # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
-    - name: Checkout the source repository from Git
-      uses: actions/checkout@v4
+      # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
+      - name: Checkout the source repository from Git
+        uses: actions/checkout@v4
 
-    # https://github.com/actions/setup-dotnet
-    - name: Get .NET externals
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-        dotnet-quality: 'ga'
-  
-    - name: Publish Android package
-      run: |
-        echo "Project Name: ${{ inputs.projectName }}";
-        echo "Project File: $projectFile";
-        echo "Project Version: $buildVersion";
-        dotnet workload restore;
-        dotnet publish $projectFile -c $configuration -f $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats -o $publishOutputFolder --nologo;
-      env:
-        projectFile: '${{ inputs.projectFile }}'
-        buildVersion: '${{ inputs.version }}'
-        configuration: ${{ inputs.configuration }}
-        targetFramework: "net8.0-android"
-        androidPackageFormats: "apk" # "aab;apk"
-        publishOutputFolder: "publish"
+      # https://github.com/actions/setup-dotnet
+      - name: Get .NET externals
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DotNetVersion }}
+          dotnet-quality: 'ga'
 
-    - name: Markdown workflow job summary
-      run: echo "### ${{ inputs.projectName }} ${{ inputs.version }} apk published" >> $GITHUB_STEP_SUMMARY
+      - name: Install .NET MAUI
+        shell: pwsh
+        run: |
+          echo ".NET Version: ${{ env.DotNetVersion }}";
+          dotnet --version;
+          echo "Project Name: ${{ inputs.projectName }}";
+          dotnet workload install maui-android;
+          dotnet workload list;
+        # dotnet nuget locals all --clear;
+        # dotnet workload restore;
+        # dotnet workload install maui maui-android maui-ios;
+        # dotnet workload install maui android ios maccatalyst tvos macos wasm-tools ${{ env.PackageLinks }}
+        env:
+          PackageLinks: "--from-rollback-file ${{env.RollbackLink}} --source ${{env.SourceLink}} --source ${{env.NuGetLink}}"
+
+      # - name: Create signing pfx file from secrets
+      #   shell: pwsh
+      #   id: secret-file
+      #   env:
+      #     SECRET_DATA1: ${{ secrets.WIN_SIGN_CERT }}
+      #   run: |
+      #     $secretFile = "XamCATFidCert.pfx"; 
+      #     $encodedBytes = [System.Convert]::FromBase64String($env:SECRET_DATA1); 
+      #     Set-Content $secretFile -Value $encodedBytes -AsByteStream;
+      #     Write-Output "SECRET_FILE=${secretFile}" | Out-File -FilePath $env:GITHUB_ENV -Append
+      #     if (-Not (Test-Path -Path "${kestorePath}" -PathType Leaf)) {
+      #       throw "The file '${kestorePath}' was not found."
+      #     }
+
+      # - name: Pack Windows App
+      #   shell: pwsh
+      #   run: |
+      #     & "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\MakeAppx" pack /v /h SHA256 /d "<OUTPUT_FOLDER_PATH>" /p <PATH TO MSIX>.msix
+      #     & ls
+
+      # - name: Sign Windows App
+      #   shell: pwsh
+      #   env:
+      #     CERT_PASSWORD: ${{ secrets.WIN_CERT_PASSWORD }}
+      #   run: |
+      #     & "C:\Program Files (x86)\Windows Kits\10\App Certification Kit\SignTool" sign /a /fd SHA256 /f XamCATFidCert.pfx /p $WIN_CERT_PASSWORD <PATH TO MSIX>.msix
+
+      - name: Publish Android package
+        run: |
+          echo "Project File: $projectFile";
+          echo "Project Version: $buildVersion";
+          dotnet publish $projectFile -c $configuration -f $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats -o $publishOutputFolder --nologo;
+        env:
+          projectFile: '${{ inputs.projectFile }}'
+          buildVersion: '${{ inputs.version }}'
+          configuration: ${{ inputs.configuration }}
+          targetFramework: "${{ env.DotNetTarget }}-android"
+          androidPackageFormats: "apk" # "aab;apk"
+          publishOutputFolder: "publish"
+
+      - name: Markdown workflow job summary
+        run: echo "### ${{ inputs.projectName }} ${{ inputs.version }} apk published" >> $GITHUB_STEP_SUMMARY
