@@ -3,9 +3,6 @@ run-name: Get version and build release notes
 
 on:
   workflow_dispatch:
-  push:
-    branches:
-      - main
 
 # Cancel any other running workflows with the same ID
 concurrency:

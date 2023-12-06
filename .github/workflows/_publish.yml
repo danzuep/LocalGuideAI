@@ -1,5 +1,5 @@
 name: 🚀 Publish Android package
-run-name: Publish ${{ inputs.projectName }} Android package
+run-name: Publish Android package
 
 on:
   workflow_call:
@@ -25,6 +25,10 @@ on:
         default: Release
         type: string
 
+env:
+    DotNetVersion: 8.0.x
+    DotNetTarget: net8.0
+
 jobs:
   deploy:
     name: Android
@@ -32,31 +36,39 @@ jobs:
     environment: ${{ inputs.environment }}
 
     steps:
-    # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
-    - name: Checkout the source repository from Git
-      uses: actions/checkout@v4
+      # https://github.com/actions/checkout#fetch-all-history-for-all-tags-and-branches
+      - name: Checkout the source repository from Git
+        uses: actions/checkout@v4
 
-    # https://github.com/actions/setup-dotnet
-    - name: Get .NET externals
-      uses: actions/setup-dotnet@v4
-      with:
-        dotnet-version: 8.0.x
-        dotnet-quality: 'ga'
-  
-    - name: Publish Android package
-      run: |
-        echo "Project Name: ${{ inputs.projectName }}";
-        echo "Project File: $projectFile";
-        echo "Project Version: $buildVersion";
-        dotnet workload restore;
-        dotnet publish $projectFile -c $configuration -f $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats -o $publishOutputFolder --nologo;
-      env:
-        projectFile: '${{ inputs.projectFile }}'
-        buildVersion: '${{ inputs.version }}'
-        configuration: ${{ inputs.configuration }}
-        targetFramework: "net8.0-android"
-        androidPackageFormats: "apk" # "aab;apk"
-        publishOutputFolder: "publish"
+      # https://github.com/actions/setup-dotnet
+      - name: Get .NET externals
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: ${{ env.DotNetVersion }}
+          dotnet-quality: 'ga'
 
-    - name: Markdown workflow job summary
-      run: echo "### ${{ inputs.projectName }} ${{ inputs.version }} apk published" >> $GITHUB_STEP_SUMMARY
+      - name: Install .NET MAUI
+        shell: pwsh
+        run: |
+          echo ".NET Version: ${{ env.DotNetVersion }}";
+          dotnet --version;
+          echo "Project Name: ${{ inputs.projectName }}";
+          dotnet workload install maui-android;
+          dotnet workload list;
+
+      - name: Publish Android package
+        run: |
+          echo "Project File: $projectFile";
+          echo "Project Version: $buildVersion";
+          echo "Target Framework: $targetFramework";
+          dotnet publish $projectFile -c $configuration -f $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats -o $publishOutputFolder --nologo;
+        env:
+          projectFile: '${{ inputs.projectFile }}'
+          buildVersion: '${{ inputs.version }}'
+          configuration: ${{ inputs.configuration }}
+          targetFramework: "${{ env.DotNetTarget }}-android"
+          androidPackageFormats: "apk" # "aab;apk"
+          publishOutputFolder: "publish"
+
+      - name: Markdown workflow job summary
+        run: echo "### ${{ inputs.projectName }} ${{ inputs.version }} apk published" >> $GITHUB_STEP_SUMMARY

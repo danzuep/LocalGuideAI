@@ -27,7 +27,7 @@ $androidPackageFormats="apk"; # "aab;apk"
 $targetFramework="${dotnetTarget}-android";
 $publishOutputFolder="publish";
 $publishPath = [IO.Path]::Combine($projectFolder, $publishOutputFolder);
-$kestoreFolder = [IO.Path]::Combine($Env:LOCALAPPDATA, "Android");
+$kestoreFolder = [IO.Path]::Combine($Env:LOCALAPPDATA, "Android"); # %LocalAppData%
 if (-Not (Test-Path -Path "${kestoreFolder}" -PathType Container))
 {
     New-Item -ItemType Directory -Path "${kestoreFolder}";
@@ -39,6 +39,10 @@ if (-Not (Test-Path -Path "${kestorePath}" -PathType Leaf))
     keytool -genkeypair -v -keystore "${kestorePath}" -alias "${androidSigningAlias}" -keyalg RSA -keysize 2048 -validity 10000;
     keytool -list -keystore "${kestorePath}";
 }
+
+Write-Host "Local .NET Version: "; dotnet --version;
+Write-Host "Target Framework: ${targetFramework}";
+Write-Host "Project File: ${projectFile} (version ${buildVersion})";
 
 dotnet publish "${projectFile}" -c $configuration --framework $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats /p:AndroidKeyStore=true /p:AndroidSigningKeyStore="${kestorePath}" /p:AndroidSigningKeyAlias="${androidSigningAlias}" /p:AndroidSigningKeyPass="${Env:AndroidSigningPassword}" /p:AndroidSigningStorePass="${Env:AndroidSigningPassword}" -o "${publishOutputFolder}" --no-restore --nologo;
 if (-not $?) {
