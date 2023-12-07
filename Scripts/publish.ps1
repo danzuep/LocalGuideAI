@@ -13,6 +13,15 @@ $projectName = $projectDirectory.BaseName;
 $projectAppName = "${projectName}";
 $projectFile="${projectFolder}/${projectAppName}/${projectAppName}.csproj";
 
+# #$dotnetVersion="8.0.x";
+# $NuGetLink="https://api.nuget.org/v3/index.json"
+# # https://pkgs.dev.azure.com/dnceng/public/_packaging/dotnet8/nuget/v3/index.json
+# $SourceLink="https://aka.ms/dotnet8/nuget/index.json"
+# # https://maui.blob.core.windows.net/metadata/rollbacks/net8.0.json
+# $RollbackLink="https://aka.ms/dotnet/maui/net8.0.json"
+# $PackageLinks="--from-rollback-file ${RollbackLink} --source ${SourceLink} --source ${NuGetLink}"
+# dotnet workload install maui-android ${PackageLinks}
+
 # restore the base project dependencies
 Set-Location -Path "${projectFolder}";
 dotnet restore "${projectFile}";
@@ -44,7 +53,8 @@ Write-Host "Local .NET Version: "; dotnet --version;
 Write-Host "Target Framework: ${targetFramework}";
 Write-Host "Project File: ${projectFile} (version ${buildVersion})";
 
-dotnet publish "${projectFile}" -c $configuration --framework $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats /p:AndroidKeyStore=true /p:AndroidSigningKeyStore="${kestorePath}" /p:AndroidSigningKeyAlias="${androidSigningAlias}" /p:AndroidSigningKeyPass="${Env:AndroidSigningPassword}" /p:AndroidSigningStorePass="${Env:AndroidSigningPassword}" -o "${publishOutputFolder}" --no-restore --nologo;
+# dotnet publish "${projectFile}" -c $configuration --framework $targetFramework /p:Version=$buildVersion /p:AndroidPackageFormats=$androidPackageFormats /p:AndroidKeyStore=true /p:AndroidSigningKeyStore="${kestorePath}" /p:AndroidSigningKeyAlias="${androidSigningAlias}" /p:AndroidSigningKeyPass=env:AndroidSigningPassword /p:AndroidSigningStorePass=env:AndroidSigningPassword -o "${publishOutputFolder}" --no-restore --nologo;
+dotnet publish "${projectFile}" -c $configuration -f $targetFramework /p:Version=$buildVersion --no-restore --nologo;
 if (-not $?) {
     Write-Host "Project failed to publish.";
     Exit 1;
